@@ -1,0 +1,50 @@
+name: Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Environment to promote to"
+        required: true
+        type: choice
+        options:
+          - dev
+          - stage
+          - perf
+          - prod
+      image_tag:
+        description: "Application image tag to deploy"
+        required: true
+        type: string
+
+jobs:
+  preflight-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate environment exists
+        run: |
+          test -d "environments/${{ inputs.target_environment }}"
+
+      - name: Validate image tag format
+        run: |
+          if [ -z "${{ inputs.image_tag }}" ]; then
+            echo "image_tag is required"
+            exit 1
+          fi
+
+  deploy:
+    needs:
+      - preflight-validation
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deployment placeholder
+        run: |
+          echo "Promoting image tag ${{ inputs.image_tag }} to ${{ inputs.target_environment }}."
+          echo "Replace this step with ArgoCD/Flux/Helm deployment command."
