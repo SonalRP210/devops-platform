@@ -34,6 +34,22 @@ jobs:
             echo "image_tag is required"
             exit 1
           fi
+          if [[ "${{ inputs.image_tag }}" =~ [[:space:]] ]]; then
+            echo "image_tag cannot contain whitespace"
+            exit 1
+          fi
+
+      - name: Validate docker compose files
+        run: |
+          shopt -s nullglob
+          files=(environments/dev/compose/*.yml)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No compose files found to validate."
+            exit 0
+          fi
+          for file in "${files[@]}"; do
+            docker compose -f "$file" config >/dev/null
+          done
 
   deploy:
     needs:
@@ -47,4 +63,4 @@ jobs:
       - name: Deployment placeholder
         run: |
           echo "Promoting image tag ${{ inputs.image_tag }} to ${{ inputs.target_environment }}."
-          echo "Replace this step with ArgoCD/Flux/Helm deployment command."
+          echo "Replace this step with ArgoCD/Flux/Helm deployment command pinned to the image tag."
